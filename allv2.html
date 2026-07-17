@@ -1,0 +1,95 @@
+<!DOCTYPE html>
+<html lang="en">
+   <head>
+      <meta charset="UTF-8">
+      <title>Repository Image Randomizer (with Noise Patch + Session Decay)</title>
+      <script src="common/random-utils.js"></script>
+      <meta http-equiv="Cache-Control" content="no-store" />
+   </head>
+   <body>
+      <script>
+         (async () => {
+           try {
+             const [cfgRes, filesRes] = await Promise.all([
+               fetch('all.json', { cache: 'no-store' }),
+               fetch('files.json', { cache: 'no-store' })
+             ]);
+         
+             if (!cfgRes.ok) throw new Error('Failed to load config');
+             if (!filesRes.ok) throw new Error('Failed to load files.json');
+         
+             const cfg = await cfgRes.json();
+             const files = await filesRes.json();
+         
+             const repos = cfg.repositories || {};
+             const issues = [];
+         
+             const IMAGE_EXT = /\.(png|jpe?g|gif|webp|bmp|avif|svg)$/i;
+         
+             for (const filePath of files) {
+               if (typeof filePath !== 'string') continue;
+               if (filePath === '.gitkeep' || filePath.endsWith('/.gitkeep')) continue;
+         
+               const parts = filePath.split('/');
+               if (parts.length < 2) continue;
+         
+               const repoName = parts[0];
+               const fileName = parts[1];
+               const repo = repos[repoName];
+               if (!repo) continue;
+         
+               if (repo.images && !IMAGE_EXT.test(filePath)) continue;
+         
+               issues.push(
+                 `https://github.com/${repo.username}/img/blob/in7/files/${repoName}/${fileName}`
+               );
+             }
+         
+             const n = issues.length;
+             let formulaParam = 'random';
+             const formulas = Array.isArray(cfg.formulas) ? cfg.formulas : [];
+             if (formulas.length) {
+               formulaParam = formulas[Math.floor(getSecureRandomNumber()*formulas.length)];
+             }
+         
+             const weights = new Array(n).fill(1);
+             if (formulaParam === 'leftLeaning') {
+               for (let i=0;i<n;i++) weights[i]=(n-i)*(0.5+getSecureRandomNumber());
+             } else if (formulaParam === 'rightLeaning1') {
+               for (let i=0;i<n;i++) weights[i]=(i+1)*(0.5+getSecureRandomNumber());
+             } else if (formulaParam === 'recent20Percent') {
+               for (let i=Math.floor(n*0.8);i<n;i++) weights[i]=5;
+             } else if (formulaParam === 'recent5Percent') {
+               for (let i=Math.floor(n*0.95);i<n;i++) weights[i]=20;
+             }
+         
+             function noisePatch(weights){
+               function cryptoRandom(){const b=new Uint32Array(1);crypto.getRandomValues(b);return b[0]/0xffffffff;}
+               function cryptoNormal(m=0,s=1){let u1=0,u2=0;while(!u1)u1=cryptoRandom();while(!u2)u2=cryptoRandom();return Math.sqrt(-2*Math.log(u1))*Math.cos(2*Math.PI*u2)*s+m;}
+               const key="repo_randomizer_memory_v2skjdlfsjdflskdflkjd";
+               let mem=JSON.parse(localStorage.getItem(key)||"{}");
+               let history=mem.history||new Array(weights.length).fill(0);
+               let lastTs=mem.lastTs||Date.now();
+               const now=Date.now();
+               const days=(now-lastTs)/86400000;
+               if(days>0.1){const f=Math.exp(-0.15*days);history=history.map(v=>v*f);}
+               const total=history.reduce((a,b)=>a+b,0);
+               const bias=total?history.map(c=>((total/history.length)-c)/(total/history.length)*0.05):new Array(weights.length).fill(0);
+               const std=cryptoRandom()<0.08?0.35:0.08;
+               let adj=weights.map((w,i)=>Math.max(.0001,w+w*cryptoNormal(0,std)+w*bias[i]));
+               const sum=adj.reduce((a,b)=>a+b,0);adj=adj.map(v=>v/sum);
+               const r=cryptoRandom();let c=0,idx=adj.length-1;
+               for(let i=0;i<adj.length;i++){c+=adj[i];if(r<c){idx=i;break;}}
+               history[idx]=(history[idx]||0)+1;
+               localStorage.setItem(key,JSON.stringify({history,lastTs:now}));
+               return {index:idx};
+             }
+         
+             location.href=issues[noisePatch(weights).index];
+           } catch(e){
+             document.body.textContent=e.message;
+           }
+         })();
+      </script>
+   </body>
+</html>

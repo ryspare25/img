@@ -1,0 +1,789 @@
+<!DOCTYPE html>
+<html lang="en" data-theme="dark">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover, maximum-scale=1.0">
+<title>Vault Swiper</title>
+<link rel="icon" href="data:,">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=JetBrains+Mono:wght@400;500;600&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.9.0/styles/atom-one-dark.min.css">
+<script src="https://cdnjs.cloudflare.com/ajax/libs/marked/12.0.2/marked.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.9.0/highlight.min.js"></script>
+<style>
+/* ============ TOKENS ============ */
+:root[data-theme="dark"]{
+  --bg-0:#161616;
+  --bg-1:#1e1e1e;
+  --bg-2:#252525;
+  --bg-3:#2c2c2c;
+  --border:#333333;
+  --text:#dadada;
+  --text-muted:#949494;
+  --text-faint:#5c5c5c;
+  --accent:#8875ff;
+  --accent-soft:rgba(136,117,255,.16);
+  --accent-hover:#9c8cff;
+  --shadow:rgba(0,0,0,.55);
+  --code-bg:#161616;
+  --red:#e0777d;
+  --yellow:#e0c777;
+  --green:#8ddc9a;
+  --blue:#7fb3e0;
+}
+:root[data-theme="light"]{
+  --bg-0:#fbfbfa;
+  --bg-1:#ffffff;
+  --bg-2:#f2f2f0;
+  --bg-3:#e9e9e7;
+  --border:#e1e1df;
+  --text:#2b2b2b;
+  --text-muted:#6e6e6e;
+  --text-faint:#a3a3a3;
+  --accent:#7c5cfc;
+  --accent-soft:rgba(124,92,252,.10);
+  --accent-hover:#6a48f0;
+  --shadow:rgba(0,0,0,.12);
+  --code-bg:#f4f4f3;
+  --red:#c4453f;
+  --yellow:#b8860b;
+  --green:#3a8f4e;
+  --blue:#3a6fb0;
+}
+
+*{box-sizing:border-box; -webkit-tap-highlight-color:transparent;}
+html,body{height:100%; margin:0; overscroll-behavior:none;}
+body{
+  background:var(--bg-0);
+  color:var(--text);
+  font-family:'Inter',-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;
+  overflow:hidden;
+  height:100dvh;
+  transition:background .3s ease, color .3s ease;
+}
+::selection{background:var(--accent-soft); color:var(--accent);}
+::-webkit-scrollbar{width:8px; height:8px;}
+::-webkit-scrollbar-thumb{background:var(--border); border-radius:8px;}
+::-webkit-scrollbar-track{background:transparent;}
+
+#app{position:relative; height:100dvh; display:flex; flex-direction:column;}
+
+/* ============ TOP BAR ============ */
+#topbar{
+  display:flex; align-items:center; gap:10px;
+  padding:12px 14px; border-bottom:1px solid var(--border);
+  background:var(--bg-1); position:relative; z-index:30; flex:0 0 auto;
+}
+.logo{width:22px; height:22px; flex:0 0 auto;}
+.logo path{fill:var(--accent);}
+#vault-info{display:flex; flex-direction:column; min-width:0; flex:1;}
+#file-title{font-weight:700; font-size:15px; white-space:nowrap; overflow:hidden; text-overflow:ellipsis; letter-spacing:-.01em;}
+#file-meta{font-size:11px; color:var(--text-faint); white-space:nowrap; overflow:hidden; text-overflow:ellipsis;}
+.icon-btn{
+  width:34px; height:34px; border-radius:8px; border:none; background:transparent; color:var(--text-muted);
+  display:flex; align-items:center; justify-content:center; cursor:pointer; flex:0 0 auto;
+  transition:background .15s ease, color .15s ease, transform .1s ease;
+}
+.icon-btn:hover{background:var(--bg-3); color:var(--text);}
+.icon-btn:active{transform:scale(.9);}
+.icon-btn svg{width:18px; height:18px;}
+
+/* progress bar */
+#progress{position:absolute; left:0; bottom:-1px; height:2px; background:var(--accent); width:0%; transition:width .08s linear; z-index:31;}
+
+/* ============ CARD STACK ============ */
+#viewport{flex:1; position:relative; overflow:hidden; perspective:1400px;}
+#track{
+  position:absolute; inset:0; width:300%; height:100%;
+  display:flex; will-change:transform;
+  transform:translate3d(-33.3333%,0,0);
+}
+.card{
+  width:33.3333%; height:100%; flex:0 0 33.3333%;
+  overflow-y:auto; overscroll-behavior:contain;
+  -webkit-overflow-scrolling:touch;
+  padding:28px 22px 120px;
+  background:var(--bg-1);
+  transform-origin:center center;
+}
+.card + .card{border-left:1px solid var(--border);}
+.card-inner{max-width:680px; margin:0 auto;}
+
+.skeleton{opacity:.5;}
+.skel-line{height:14px; border-radius:4px; background:linear-gradient(90deg,var(--bg-2),var(--bg-3),var(--bg-2)); background-size:200% 100%; animation:shimmer 1.3s ease-in-out infinite; margin-bottom:12px;}
+.skel-line.w1{width:70%; height:22px; margin-bottom:20px;}
+.skel-line.w2{width:95%;} .skel-line.w3{width:88%;} .skel-line.w4{width:60%;}
+@keyframes shimmer{0%{background-position:200% 0;}100%{background-position:-200% 0;}}
+
+/* image notes */
+.image-view{
+  display:flex; align-items:center; justify-content:center;
+  min-height:calc(100dvh - 160px);
+}
+.image-view img{
+  max-width:100%; max-height:calc(100dvh - 180px); width:auto; height:auto;
+  border-radius:10px; border:1px solid var(--border);
+  box-shadow:0 12px 40px var(--shadow);
+  object-fit:contain;
+}
+
+/* frontmatter properties panel */
+.frontmatter{
+  background:var(--bg-2); border:1px solid var(--border); border-radius:8px;
+  padding:10px 14px; margin-bottom:22px; font-size:12.5px;
+}
+.frontmatter .fm-row{display:flex; gap:8px; padding:3px 0; color:var(--text-muted);}
+.frontmatter .fm-key{color:var(--text-faint); min-width:88px; flex:0 0 auto;}
+.frontmatter .fm-val{color:var(--text);}
+
+/* ============ MARKDOWN TYPOGRAPHY ============ */
+.md h1,.md h2,.md h3,.md h4{font-weight:700; letter-spacing:-.015em; line-height:1.28; margin:1.5em 0 .5em;}
+.md h1{font-size:1.9em; border-bottom:1px solid var(--border); padding-bottom:.25em;}
+.md h2{font-size:1.5em;}
+.md h3{font-size:1.22em; color:var(--text);}
+.md h4{font-size:1.05em; color:var(--text-muted);}
+.md p{line-height:1.7; margin:.9em 0; font-size:15.5px;}
+.md a{color:var(--accent); text-decoration:none; border-bottom:1px solid var(--accent-soft);}
+.md a:hover{border-bottom-color:var(--accent);}
+.md ul,.md ol{padding-left:1.4em; line-height:1.75; font-size:15.5px;}
+.md li{margin:.25em 0;}
+.md li::marker{color:var(--accent);}
+.md blockquote{border-left:3px solid var(--accent); margin:1em 0; padding:.3em 1em; color:var(--text-muted); background:var(--bg-2); border-radius:0 6px 6px 0;}
+.md code{font-family:'JetBrains Mono',monospace; background:var(--bg-2); padding:.15em .4em; border-radius:4px; font-size:.85em; color:var(--accent-hover);}
+.md pre{background:var(--code-bg); border:1px solid var(--border); border-radius:8px; padding:14px 16px; overflow-x:auto; margin:1.1em 0;}
+.md pre code{background:none; padding:0; color:inherit; font-size:13px; line-height:1.55;}
+.md img{max-width:100%; border-radius:8px; margin:.5em 0;}
+.md hr{border:none; border-top:1px solid var(--border); margin:2em 0;}
+.md table{border-collapse:collapse; width:100%; margin:1em 0; font-size:14px;}
+.md th,.md td{border:1px solid var(--border); padding:6px 10px; text-align:left;}
+.md th{background:var(--bg-2); color:var(--text-muted); font-weight:600;}
+.md input[type=checkbox]{accent-color:var(--accent); margin-right:.5em;}
+
+/* wikilinks + tags */
+.wikilink{color:var(--accent); cursor:pointer; border-bottom:1px dashed var(--accent-soft); padding:0 1px; border-radius:2px; transition:background .15s;}
+.wikilink:hover{background:var(--accent-soft);}
+.wikilink.broken{color:var(--text-faint); cursor:default; border-bottom-color:transparent;}
+.tag-pill{display:inline-block; background:var(--accent-soft); color:var(--accent); font-size:.78em; font-weight:600; padding:.1em .55em; border-radius:12px; margin:0 2px;}
+
+/* callouts */
+.callout{border-radius:8px; border:1px solid var(--border); border-left:4px solid var(--accent); background:var(--bg-2); margin:1.1em 0; padding:10px 14px 12px;}
+.callout-title{font-weight:700; font-size:14px; display:flex; align-items:center; gap:6px; margin-bottom:2px;}
+.callout-body{font-size:14px; color:var(--text-muted);}
+.callout-body p:first-child{margin-top:.4em;}
+.callout.note{border-left-color:var(--blue);} .callout.note .callout-title{color:var(--blue);}
+.callout.tip,.callout.hint{border-left-color:var(--green);} .callout.tip .callout-title,.callout.hint .callout-title{color:var(--green);}
+.callout.warning,.callout.caution{border-left-color:var(--yellow);} .callout.warning .callout-title,.callout.caution .callout-title{color:var(--yellow);}
+.callout.danger,.callout.error,.callout.bug{border-left-color:var(--red);} .callout.danger .callout-title,.callout.error .callout-title,.callout.bug .callout-title{color:var(--red);}
+.callout.quote{border-left-color:var(--text-faint);}
+
+/* ============ FOOTER NAV ============ */
+#footer{
+  flex:0 0 auto; display:flex; flex-direction:column; align-items:center; gap:8px;
+  padding:10px 14px 16px; background:var(--bg-1); border-top:1px solid var(--border); z-index:30;
+}
+#dots{display:flex; align-items:center; gap:6px; height:8px;}
+.dot{width:6px; height:6px; border-radius:50%; background:var(--border); transition:all .25s cubic-bezier(.4,0,.2,1);}
+.dot.active{width:18px; background:var(--accent); border-radius:4px;}
+#counter{font-size:11px; color:var(--text-faint); font-variant-numeric:tabular-nums; letter-spacing:.02em;}
+
+/* swipe hint arrows */
+.edge-hint{position:absolute; top:50%; transform:translateY(-50%); color:var(--text-faint); opacity:0; pointer-events:none; transition:opacity .2s; z-index:20;}
+.edge-hint.left{left:8px;} .edge-hint.right{right:8px;}
+.edge-hint svg{width:22px; height:22px;}
+
+/* first-run tutorial */
+#tutorial{position:fixed; inset:0; background:rgba(0,0,0,.72); backdrop-filter:blur(3px); z-index:100; display:flex; align-items:center; justify-content:center; opacity:0; pointer-events:none; transition:opacity .35s ease;}
+#tutorial.show{opacity:1; pointer-events:auto;}
+.tut-card{background:var(--bg-1); border:1px solid var(--border); border-radius:16px; padding:28px 26px; max-width:300px; text-align:center; box-shadow:0 20px 60px var(--shadow);}
+.tut-swipe-icon{font-size:34px; margin-bottom:10px; animation:swipe-demo 1.6s ease-in-out infinite;}
+@keyframes swipe-demo{0%,100%{transform:translateX(0);}50%{transform:translateX(14px);}}
+.tut-card h3{margin:0 0 8px; font-size:16px;}
+.tut-card p{margin:0 0 18px; font-size:13px; color:var(--text-muted); line-height:1.6;}
+.tut-card button{background:var(--accent); color:#fff; border:none; padding:9px 20px; border-radius:8px; font-weight:600; font-size:13px; cursor:pointer;}
+
+/* ============ SIDEBAR / SEARCH ============ */
+#overlay-bg{position:fixed; inset:0; background:rgba(0,0,0,.5); z-index:39; opacity:0; pointer-events:none; transition:opacity .25s;}
+#overlay-bg.show{opacity:1; pointer-events:auto;}
+#sidebar{
+  position:fixed; top:0; left:0; bottom:0; width:min(340px,86vw); background:var(--bg-1);
+  border-right:1px solid var(--border); z-index:40; transform:translateX(-105%);
+  transition:transform .3s cubic-bezier(.4,0,.2,1); display:flex; flex-direction:column;
+}
+#sidebar.show{transform:translateX(0);}
+#search-box{padding:14px; border-bottom:1px solid var(--border);}
+#search-input{
+  width:100%; background:var(--bg-2); border:1px solid var(--border); color:var(--text);
+  padding:9px 12px; border-radius:8px; font-size:14px; font-family:inherit; outline:none;
+}
+#search-input:focus{border-color:var(--accent);}
+#file-list{flex:1; overflow-y:auto; padding:6px;}
+.file-row{
+  display:flex; flex-direction:column; padding:9px 12px; border-radius:8px; cursor:pointer;
+  transition:background .12s;
+}
+.file-row:hover{background:var(--bg-2);}
+.file-row.current{background:var(--accent-soft);}
+.file-row .fr-title{font-size:13.5px; font-weight:500; color:var(--text); white-space:nowrap; overflow:hidden; text-overflow:ellipsis;}
+.file-row.current .fr-title{color:var(--accent);}
+.file-row .fr-path{font-size:11px; color:var(--text-faint);}
+.empty-state{padding:24px 16px; text-align:center; color:var(--text-faint); font-size:13px; line-height:1.6;}
+
+/* status/empty screens */
+.center-msg{position:absolute; inset:0; display:flex; align-items:center; justify-content:center; flex-direction:column; gap:10px; text-align:center; padding:30px; color:var(--text-muted);}
+.center-msg svg{width:36px; height:36px; color:var(--text-faint);}
+.center-msg code{background:var(--bg-2); padding:2px 8px; border-radius:5px; font-family:'JetBrains Mono',monospace; font-size:12px;}
+
+@media (prefers-reduced-motion:reduce){
+  *{animation-duration:.001s !important; transition-duration:.001s !important;}
+}
+@media (min-width:720px){
+  .card{padding:48px 40px 140px;}
+}
+</style>
+</head>
+<body>
+<div id="app">
+
+  <div id="topbar">
+    <svg class="logo" viewBox="0 0 24 24"><path d="M12 1.2l9.3 5.4v10.8L12 22.8l-9.3-5.4V6.6L12 1.2z" opacity=".18"/><path d="M12 3.4l7.2 4.2v8.4L12 20.2l-7.2-4.2V7.6L12 3.4zM12 6.6L7.4 9.3v5.4L12 17.4l4.6-2.7V9.3L12 6.6z"/></svg>
+    <div id="vault-info">
+      <div id="file-title">Loading vault…</div>
+      <div id="file-meta">—</div>
+    </div>
+    <button class="icon-btn" id="btn-search" title="Search / list (press /)">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><circle cx="11" cy="11" r="7"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></svg>
+    </button>
+    <button class="icon-btn" id="btn-theme" title="Toggle theme">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 12.79A9 9 0 1111.21 3 7 7 0 0021 12.79z"/></svg>
+    </button>
+    <div id="progress"></div>
+  </div>
+
+  <div id="viewport">
+    <div id="track">
+      <div class="card" id="card-prev"><div class="card-inner"></div></div>
+      <div class="card" id="card-curr"><div class="card-inner"></div></div>
+      <div class="card" id="card-next"><div class="card-inner"></div></div>
+    </div>
+    <div class="edge-hint left"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="15 18 9 12 15 6"/></svg></div>
+    <div class="edge-hint right"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="9 18 15 12 9 6"/></svg></div>
+  </div>
+
+  <div id="footer">
+    <div id="dots"></div>
+    <div id="counter">— / —</div>
+  </div>
+
+</div>
+
+<div id="overlay-bg"></div>
+<div id="sidebar">
+  <div id="search-box"><input id="search-input" type="text" placeholder="Jump to note…" autocomplete="off"></div>
+  <div id="file-list"></div>
+</div>
+
+<div id="tutorial">
+  <div class="tut-card">
+    <div class="tut-swipe-icon">👆</div>
+    <h3>Swipe to explore</h3>
+    <p>Swipe left or right — or use the arrow keys — to flip through every note in your vault, endlessly.</p>
+    <button id="tut-close">Got it</button>
+  </div>
+</div>
+
+<script>
+(function(){
+"use strict";
+
+/* ===================== CONFIG ===================== */
+const FILES_JSON_PATH = "files.json";
+const FILES_FOLDER = "files";
+const LS_LAST_KEY = "vault-swiper:last";
+const LS_THEME_KEY = "vault-swiper:theme";
+const LS_SEEN_TUTORIAL = "vault-swiper:tutorial-seen";
+const REDUCED_MOTION = window.matchMedia("(prefers-reduced-motion: reduce)").matches;
+
+/* ===================== DOM ===================== */
+const $ = (id) => document.getElementById(id);
+const viewport = $("viewport");
+const track = $("track");
+const cardEls = { prev: $("card-prev"), curr: $("card-curr"), next: $("card-next") };
+const fileTitleEl = $("file-title");
+const fileMetaEl = $("file-meta");
+const progressEl = $("progress");
+const dotsEl = $("dots");
+const counterEl = $("counter");
+const sidebar = $("sidebar");
+const overlayBg = $("overlay-bg");
+const searchInput = $("search-input");
+const fileListEl = $("file-list");
+const tutorial = $("tutorial");
+
+/* ===================== STATE ===================== */
+let files = [];          // normalized [{path,title}]
+let n = 0;
+let index = 0;
+let contentCache = new Map(); // path -> {raw, html, meta}
+let dragging = false;
+let dragStartX = 0, dragStartY = 0, dragX = 0, lastX = 0, lastT = 0, velocity = 0;
+let axisLocked = null; // 'x' | 'y'
+let animating = false;
+const TRACK_W_PCT = 33.3333;
+
+/* ===================== UTIL ===================== */
+function humanize(name){
+  return name.replace(/\.[A-Za-z0-9]+$/,"").split("/").pop()
+    .replace(/[-_]+/g," ")
+    .replace(/\s+/g," ")
+    .trim()
+    .replace(/\b\w/g, c => c.toUpperCase());
+}
+const IMAGE_EXT = /\.(png|jpe?g|gif|webp|svg|bmp|avif)$/i;
+function classifyPath(path){
+  if(IMAGE_EXT.test(path)) return "image";
+  if(/\.md$/i.test(path)) return "markdown";
+  return "other";
+}
+function normalizeEntry(entry){
+  let raw = typeof entry === "string" ? entry : (entry.path || entry.file || entry.name || "");
+  if(!raw) return null;
+  raw = raw.replace(/^\.?\//,"");
+  let path = raw;
+  if(!path.includes("/")) path = FILES_FOLDER + "/" + path;
+  // Use the path exactly as given — never invent or append an extension.
+  const title = (typeof entry === "object" && entry.title) ? entry.title : humanize(path);
+  return { path, title, type: classifyPath(path) };
+}
+function debounce(fn, ms){
+  let t; return (...a) => { clearTimeout(t); t = setTimeout(()=>fn(...a), ms); };
+}
+function wrap(i){ return ((i % n) + n) % n; }
+
+/* ===================== LOAD FILE LIST ===================== */
+async function loadFileList(){
+  try{
+    const res = await fetch(FILES_JSON_PATH, {cache:"no-store"});
+    if(!res.ok) throw new Error("HTTP " + res.status);
+    const data = await res.json();
+    const list = Array.isArray(data) ? data : (data.files || []);
+    files = list.map(normalizeEntry).filter(Boolean);
+  }catch(err){
+    console.warn("Could not load files.json:", err);
+    files = [];
+  }
+  n = files.length;
+
+  if(n === 0){
+    renderEmptyState();
+    return;
+  }
+
+  buildDots();
+  buildFileList();
+
+  // restore last-read note or hash
+  let startIndex = 0;
+  const hashPath = decodeURIComponent(location.hash.replace(/^#/,""));
+  const hashIdx = files.findIndex(f => f.path === hashPath);
+  if(hashIdx >= 0){ startIndex = hashIdx; }
+  else{
+    const last = localStorage.getItem(LS_LAST_KEY);
+    const lastIdx = files.findIndex(f => f.path === last);
+    if(lastIdx >= 0) startIndex = lastIdx;
+  }
+  index = startIndex;
+  await Promise.all([ preload(index-1), preload(index), preload(index+1) ]);
+  renderAll();
+  maybeShowTutorial();
+}
+
+function renderEmptyState(){
+  fileTitleEl.textContent = "No notes found";
+  fileMetaEl.textContent = "";
+  viewport.insertAdjacentHTML("beforeend", `
+    <div class="center-msg">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><path d="M9 12h6m-6 4h6M9 8h1M5 3h14a2 2 0 012 2v14a2 2 0 01-2 2H5a2 2 0 01-2-2V5a2 2 0 012-2z"/></svg>
+      <div>Couldn't find any notes.</div>
+      <div>Add a <code>${FILES_JSON_PATH}</code> file listing your <code>.md</code> files, e.g.<br><code>["note-one.md","note-two.md"]</code></div>
+    </div>`);
+  track.style.display = "none";
+  dotsEl.style.display = "none";
+  counterEl.style.display = "none";
+}
+
+/* ===================== FETCH + PARSE ===================== */
+async function preload(i){
+  const idx = wrap(i);
+  const file = files[idx];
+  if(!file || contentCache.has(file.path)) return contentCache.get(file?.path);
+  const placeholder = { loading:true };
+  contentCache.set(file.path, placeholder);
+
+  if(file.type === "image"){
+    // warm the browser cache; the <img> tag itself does the real loading.
+    const img = new Image();
+    img.src = file.path;
+    const parsed = { type:"image" };
+    contentCache.set(file.path, parsed);
+    return parsed;
+  }
+
+  if(file.type === "other"){
+    const parsed = { type:"other" };
+    contentCache.set(file.path, parsed);
+    return parsed;
+  }
+
+  try{
+    const res = await fetch(file.path, {cache:"force-cache"});
+    const raw = res.ok ? await res.text() : "# Not found\n\nCouldn't load `" + file.path + "` (" + res.status + ").";
+    const parsed = parseNote(raw);
+    parsed.type = "markdown";
+    contentCache.set(file.path, parsed);
+    return parsed;
+  }catch(err){
+    const parsed = parseNote("# Error loading note\n\n" + String(err));
+    parsed.type = "markdown";
+    contentCache.set(file.path, parsed);
+    return parsed;
+  }
+}
+
+function parseFrontmatter(raw){
+  const m = raw.match(/^---\s*\n([\s\S]*?)\n---\s*\n?/);
+  if(!m) return { meta:null, body: raw };
+  const meta = {};
+  m[1].split("\n").forEach(line => {
+    const mm = line.match(/^([A-Za-z0-9_ -]+):\s*(.*)$/);
+    if(mm) meta[mm[1].trim()] = mm[2].trim().replace(/^["']|["']$/g,"");
+  });
+  return { meta, body: raw.slice(m[0].length) };
+}
+
+function preprocessObsidian(md, currentPath){
+  // callouts: > [!type] Title  (+ following blockquote lines)
+  const lines = md.split("\n");
+  let out = [];
+  for(let i=0;i<lines.length;i++){
+    const m = lines[i].match(/^>\s*\[!(\w+)\]\s*(.*)$/);
+    if(m){
+      const type = m[1].toLowerCase();
+      const title = m[2] || (type.charAt(0).toUpperCase()+type.slice(1));
+      let body = [];
+      let j = i+1;
+      while(j < lines.length && /^>/.test(lines[j])){
+        body.push(lines[j].replace(/^>\s?/,""));
+        j++;
+      }
+      out.push(`<div class="callout ${type}"><div class="callout-title">${escapeHtml(title)}</div><div class="callout-body">${marked.parse(body.join("\n"))}</div></div>`);
+      i = j-1;
+    } else {
+      out.push(lines[i]);
+    }
+  }
+  md = out.join("\n");
+
+  // wikilinks [[Target]] or [[Target|Alias]] -> resolvable links
+  md = md.replace(/\[\[([^\]|#]+)(#[^\]|]+)?(\|([^\]]+))?\]\]/g, (whole, target, _anchor, _pipe, alias) => {
+    const label = alias || target;
+    const norm = target.trim().toLowerCase().replace(/\.md$/,"");
+    const match = files.find(f => f.path.toLowerCase().replace(/^files\//,"").replace(/\.md$/,"") === norm
+                                || f.title.toLowerCase() === norm);
+    if(match){
+      return `<span class="wikilink" data-path="${escapeHtml(match.path)}">${escapeHtml(label)}</span>`;
+    }
+    return `<span class="wikilink broken" title="Note not found">${escapeHtml(label)}</span>`;
+  });
+
+  // tags #tag (not inside urls / not part of a heading hash)
+  md = md.replace(/(^|[\s(])#([A-Za-z][\w\-\/]*)/g, (whole, pre, tag) => `${pre}<span class="tag-pill">#${tag}</span>`);
+
+  return md;
+}
+
+function escapeHtml(s){
+  return String(s).replace(/[&<>"']/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
+}
+
+function parseNote(raw, path){
+  const { meta, body } = parseFrontmatter(raw);
+  const pre = preprocessObsidian(body, path);
+  const html = marked.parse(pre, { breaks:false, gfm:true });
+  return { raw, meta, html };
+}
+
+/* ===================== RENDER ===================== */
+function skeletonHtml(){
+  return `<div class="skeleton"><div class="skel-line w1"></div><div class="skel-line w2"></div><div class="skel-line w3"></div><div class="skel-line w2"></div><div class="skel-line w4"></div></div>`;
+}
+
+function paintCard(el, idx){
+  const inner = el.querySelector(".card-inner");
+  const file = files[wrap(idx)];
+  const cached = contentCache.get(file.path);
+  if(!cached || cached.loading){
+    inner.innerHTML = skeletonHtml();
+    preload(idx).then(data => { if(files[wrap(idx)] === file) paintCard(el, idx); });
+    return;
+  }
+
+  if(cached.type === "image"){
+    inner.innerHTML = `<div class="image-view">
+      <img src="${escapeHtml(file.path)}" alt="${escapeHtml(file.title)}" loading="lazy">
+    </div>`;
+    el.scrollTop = 0;
+    return;
+  }
+
+  if(cached.type === "other"){
+    inner.innerHTML = `<div class="center-msg" style="position:static; height:auto; padding:60px 10px;">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><path d="M14 2H6a2 2 0 00-2 2v16a2 2 0 002 2h12a2 2 0 002-2V8z"/><path d="M14 2v6h6"/></svg>
+      <div>Can't preview this file type in-app.</div>
+      <div><a href="${escapeHtml(file.path)}" target="_blank" rel="noopener" style="color:var(--accent)">Open ${escapeHtml(file.path)} directly →</a></div>
+    </div>`;
+    el.scrollTop = 0;
+    return;
+  }
+
+  let html = "";
+  if(cached.meta){
+    html += `<div class="frontmatter">` + Object.entries(cached.meta).map(([k,v]) =>
+      `<div class="fm-row"><span class="fm-key">${escapeHtml(k)}</span><span class="fm-val">${escapeHtml(v)}</span></div>`).join("") + `</div>`;
+  }
+  html += `<div class="md">${cached.html}</div>`;
+  inner.innerHTML = html;
+  el.scrollTop = 0;
+  if(window.hljs){
+    inner.querySelectorAll("pre code").forEach(block => { try{ hljs.highlightElement(block); }catch(e){} });
+  }
+  inner.querySelectorAll(".wikilink[data-path]").forEach(a => {
+    a.addEventListener("click", () => {
+      const target = files.findIndex(f => f.path === a.dataset.path);
+      if(target >= 0) jumpTo(target);
+    });
+  });
+}
+
+function renderAll(){
+  if(n === 0) return;
+  paintCard(cardEls.prev, index-1);
+  paintCard(cardEls.curr, index);
+  paintCard(cardEls.next, index+1);
+  updateChrome();
+  preload(index+2); preload(index-2);
+}
+
+function updateChrome(){
+  const file = files[index];
+  fileTitleEl.textContent = file.title;
+  fileMetaEl.textContent = file.path;
+  counterEl.textContent = `${index+1} / ${n}`;
+  document.title = file.title + " — Vault";
+  history.replaceState(null, "", "#" + encodeURIComponent(file.path));
+  localStorage.setItem(LS_LAST_KEY, file.path);
+  renderDots();
+  highlightCurrentInSidebar();
+}
+
+/* windowed dot pagination */
+function buildDots(){ dotsEl.innerHTML = ""; }
+function renderDots(){
+  const maxDots = 7;
+  const half = Math.floor(maxDots/2);
+  dotsEl.innerHTML = "";
+  const count = Math.min(maxDots, n);
+  for(let k=0;k<count;k++){
+    let realIdx;
+    if(n <= maxDots){ realIdx = k; }
+    else{ realIdx = wrap(index - half + k); }
+    const d = document.createElement("div");
+    d.className = "dot" + (realIdx === index ? " active" : "");
+    dotsEl.appendChild(d);
+  }
+}
+
+/* ===================== NAVIGATION ===================== */
+function settleTrack(){
+  track.style.transition = "";
+  track.style.transform = `translate3d(-${TRACK_W_PCT}%,0,0)`;
+}
+
+function animateTo(direction, cb){
+  if(animating) return;
+  animating = true;
+  const target = direction === 1 ? -(2*TRACK_W_PCT) : 0;
+  track.style.transition = REDUCED_MOTION ? "none" : "transform .34s cubic-bezier(.22,.68,.36,1)";
+  track.style.transform = `translate3d(${target}%,0,0)`;
+  const done = () => {
+    track.removeEventListener("transitionend", done);
+    index = wrap(index + direction);
+    settleTrack();
+    cb && cb();
+    animating = false;
+  };
+  if(REDUCED_MOTION){ done(); } else { track.addEventListener("transitionend", done, { once:true }); }
+}
+
+function goNext(){ if(n<2 && n!==0){} if(n===0) return; if(navigator.vibrate) navigator.vibrate(8); animateTo(1, renderAll); }
+function goPrev(){ if(n===0) return; if(navigator.vibrate) navigator.vibrate(8); animateTo(-1, renderAll); }
+
+function jumpTo(targetIdx){
+  if(n===0 || targetIdx===index) { closeSidebar(); return; }
+  index = wrap(targetIdx);
+  renderAll();
+  closeSidebar();
+}
+
+/* ===================== POINTER / SWIPE ===================== */
+const SWIPE_THRESHOLD = 70;
+const VELOCITY_THRESHOLD = 0.45;
+
+function onPointerDown(e){
+  if(animating || n===0) return;
+  dragging = true;
+  axisLocked = null;
+  dragStartX = e.clientX; dragStartY = e.clientY;
+  lastX = e.clientX; lastT = performance.now();
+  velocity = 0;
+  track.style.transition = "none";
+  track.setPointerCapture && e.pointerId!=null && viewport.setPointerCapture(e.pointerId);
+}
+function onPointerMove(e){
+  if(!dragging) return;
+  const dx = e.clientX - dragStartX;
+  const dy = e.clientY - dragStartY;
+  if(axisLocked === null){
+    if(Math.abs(dx) > 6 || Math.abs(dy) > 6){
+      axisLocked = Math.abs(dx) > Math.abs(dy) ? "x" : "y";
+    }
+  }
+  if(axisLocked === "y"){ return; } // let vertical scroll happen natively
+  e.preventDefault();
+  dragX = dx;
+  const now = performance.now();
+  const dt = now - lastT;
+  if(dt > 0) velocity = (e.clientX - lastX) / dt;
+  lastX = e.clientX; lastT = now;
+
+  const pct = (dragX / viewport.clientWidth) * TRACK_W_PCT;
+  const tilt = REDUCED_MOTION ? 0 : Math.max(-6, Math.min(6, dragX / 22));
+  track.style.transform = `translate3d(${-TRACK_W_PCT + pct}%,0,0) rotateY(${-tilt}deg)`;
+
+  const edge = viewport.querySelector(dx > 0 ? ".edge-hint.left" : ".edge-hint.right");
+  if(edge) edge.style.opacity = Math.min(1, Math.abs(dx)/120);
+}
+function onPointerUp(){
+  if(!dragging) return;
+  dragging = false;
+  document.querySelectorAll(".edge-hint").forEach(el => el.style.opacity = 0);
+  if(axisLocked !== "x"){ settleTrack(); return; }
+
+  const passedThreshold = Math.abs(dragX) > SWIPE_THRESHOLD || Math.abs(velocity) > VELOCITY_THRESHOLD;
+  if(passedThreshold && dragX < 0){ goNext(); }
+  else if(passedThreshold && dragX > 0){ goPrev(); }
+  else{
+    animating = true;
+    track.style.transition = REDUCED_MOTION ? "none" : "transform .3s cubic-bezier(.22,.68,.36,1)";
+    track.style.transform = `translate3d(-${TRACK_W_PCT}%,0,0) rotateY(0deg)`;
+    track.addEventListener("transitionend", () => { animating = false; settleTrack(); }, { once:true });
+  }
+  dragX = 0;
+}
+
+viewport.addEventListener("pointerdown", onPointerDown);
+viewport.addEventListener("pointermove", onPointerMove, { passive:false });
+window.addEventListener("pointerup", onPointerUp);
+window.addEventListener("pointercancel", onPointerUp);
+
+/* keyboard */
+window.addEventListener("keydown", (e) => {
+  if(document.activeElement === searchInput) {
+    if(e.key === "Escape") closeSidebar();
+    return;
+  }
+  if(e.key === "ArrowRight") goNext();
+  else if(e.key === "ArrowLeft") goPrev();
+  else if(e.key === "/"){ e.preventDefault(); openSidebar(); }
+  else if(e.key === "Escape"){ closeSidebar(); }
+  else if(e.key === "t" || e.key === "T"){ toggleTheme(); }
+});
+
+/* scroll -> reading progress bar for current card */
+cardEls.curr.addEventListener("scroll", () => {
+  const el = cardEls.curr;
+  const max = el.scrollHeight - el.clientHeight;
+  const pct = max > 0 ? (el.scrollTop / max) * 100 : 0;
+  progressEl.style.width = pct + "%";
+}, { passive:true });
+
+/* ===================== SIDEBAR / SEARCH ===================== */
+function buildFileList(){
+  fileListEl.innerHTML = "";
+  files.forEach((f, i) => {
+    const row = document.createElement("div");
+    row.className = "file-row";
+    row.dataset.idx = i;
+    row.innerHTML = `<span class="fr-title"></span><span class="fr-path"></span>`;
+    row.querySelector(".fr-title").textContent = f.title;
+    row.querySelector(".fr-path").textContent = f.path;
+    row.addEventListener("click", () => jumpTo(i));
+    fileListEl.appendChild(row);
+  });
+}
+function highlightCurrentInSidebar(){
+  fileListEl.querySelectorAll(".file-row").forEach(r => {
+    r.classList.toggle("current", Number(r.dataset.idx) === index);
+  });
+}
+const doFilter = debounce(() => {
+  const q = searchInput.value.trim().toLowerCase();
+  fileListEl.querySelectorAll(".file-row").forEach(row => {
+    const i = Number(row.dataset.idx);
+    const f = files[i];
+    const match = !q || f.title.toLowerCase().includes(q) || f.path.toLowerCase().includes(q);
+    row.style.display = match ? "flex" : "none";
+  });
+}, 80);
+searchInput.addEventListener("input", doFilter);
+
+function openSidebar(){ sidebar.classList.add("show"); overlayBg.classList.add("show"); setTimeout(()=>searchInput.focus(), 150); }
+function closeSidebar(){ sidebar.classList.remove("show"); overlayBg.classList.remove("show"); searchInput.value=""; doFilter(); }
+$("btn-search").addEventListener("click", () => sidebar.classList.contains("show") ? closeSidebar() : openSidebar());
+overlayBg.addEventListener("click", closeSidebar);
+
+/* ===================== THEME ===================== */
+function applyTheme(t){
+  document.documentElement.setAttribute("data-theme", t);
+  localStorage.setItem(LS_THEME_KEY, t);
+}
+function toggleTheme(){
+  const cur = document.documentElement.getAttribute("data-theme");
+  applyTheme(cur === "dark" ? "light" : "dark");
+}
+$("btn-theme").addEventListener("click", toggleTheme);
+(function initTheme(){
+  const saved = localStorage.getItem(LS_THEME_KEY);
+  if(saved) applyTheme(saved);
+  else if(window.matchMedia("(prefers-color-scheme: light)").matches) applyTheme("light");
+})();
+
+/* ===================== TUTORIAL ===================== */
+function maybeShowTutorial(){
+  if(localStorage.getItem(LS_SEEN_TUTORIAL) || n < 2) return;
+  requestAnimationFrame(() => tutorial.classList.add("show"));
+}
+$("tut-close").addEventListener("click", () => {
+  tutorial.classList.remove("show");
+  localStorage.setItem(LS_SEEN_TUTORIAL, "1");
+});
+
+/* ===================== INIT ===================== */
+if(window.marked){
+  marked.setOptions({ gfm:true, breaks:false });
+}
+loadFileList();
+
+})();
+</script>
+</body>
+</html>
