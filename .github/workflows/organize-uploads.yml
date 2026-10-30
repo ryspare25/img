@@ -1,0 +1,163 @@
+name: Organize Uploads, Optimize Images, Generate Config
+
+on:
+  push:
+    branches:
+      - in7
+
+permissions:
+  contents: write
+
+jobs:
+  optimize:
+    if: github.actor != 'github-actions[bot]'
+    runs-on: ubuntu-latest
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Install tools
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y pngquant jpegoptim webp imagemagick jq
+
+      - name: Ensure folders
+        run: |
+          mkdir -p incoming
+          mkdir -p files
+          touch incoming/.gitkeep
+
+      - name: Find next stash
+        id: stash
+        shell: bash
+        run: |
+          N=1
+          while true; do
+            if [ "$N" -eq 1 ]; then
+              NAME="stash"
+            else
+              NAME="stash$N"
+            fi
+            if [ ! -d "files/$NAME" ]; then
+              echo "name=$NAME" >> "$GITHUB_OUTPUT"
+              break
+            fi
+            N=$((N+1))
+          done
+
+      - name: Move incoming
+        shell: bash
+        run: |
+          mkdir -p "files/${{ steps.stash.outputs.name }}"
+          shopt -s dotglob nullglob
+          for f in incoming/*; do
+            [ "$(basename "$f")" = ".gitkeep" ] && continue
+            mv "$f" "files/${{ steps.stash.outputs.name }}/"
+          done
+
+      - name: Optimize PNG
+        shell: bash
+        run: |
+          find "files/${{ steps.stash.outputs.name }}" \
+            -type f -iname "*.png" -print0 | while IFS= read -r -d '' file; do
+
+            convert "$file" -strip "$file"
+
+            convert "$file" -fuzz 2% -trim +repage "$file"
+
+            convert "$file" PNG8:"$file"
+
+            pngquant \
+              --quality=40-60 \
+              --speed=1 \
+              --force \
+              --ext .png \
+              "$file" || true
+
+          done
+
+      - name: Optimize JPG/JPEG
+        shell: bash
+        run: |
+          find "files/${{ steps.stash.outputs.name }}" \
+            -type f \( -iname "*.jpg" -o -iname "*.jpeg" \) \
+            -print0 | while IFS= read -r -d '' file; do
+
+            convert "$file" -strip -colorspace Gray "$file"
+
+            jpegoptim \
+              --max=50 \
+              --strip-all \
+              --all-progressive \
+              "$file" || true
+
+          done
+
+      - name: Optimize WebP
+        shell: bash
+        run: |
+          find "files/${{ steps.stash.outputs.name }}" \
+            -type f -iname "*.webp" -print0 | while IFS= read -r -d '' file; do
+
+            convert "$file" -strip "$file"
+
+            cwebp \
+              -quiet \
+              -q 60 \
+              "$file" \
+              -o "${file}.tmp" && mv "${file}.tmp" "$file" || true
+
+          done
+
+      - name: Generate files.json
+        run: |
+          find files -type f | sed 's#^files/##' | jq -R . | jq -s . > files.json
+
+      - name: Generate repositories
+        shell: bash
+        run: |
+          echo '{}' > repos.json
+          for dir in files/stash*; do
+            [ -d "$dir" ] || continue
+            repo=$(basename "$dir")
+            count=$(find "$dir" -type f | wc -l)
+            jq --arg repo "$repo" --arg user "${GITHUB_REPOSITORY_OWNER}" --argjson count "$count" \
+              '. + {($repo):{username:$user,images:true,issueStartNumber:1,issueEndNumber:$count}}' \
+              repos.json > tmp.json
+            mv tmp.json repos.json
+          done
+
+      - name: Update all.json
+        shell: bash
+        run: |
+          if [ ! -f all.json ]; then
+            cat > all.json <<'EOF'
+          {
+            "skyway":{"scheduler-max":33},
+            "repositories":{},
+            "formulas":[
+              "random",
+              "leftLeaning",
+              "rightLeaning1",
+              "rightLeaning1",
+              "recent20Percent",
+              "recent5Percent"
+            ]
+          }
+          EOF
+          fi
+
+          jq --slurpfile repos repos.json \
+            '.repositories=$repos[0] | del(.repositories2x) | del(.repositories3x)' \
+            all.json > all.new.json
+          mv all.new.json all.json
+
+      - name: Commit
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add .
+          if ! git diff --cached --quiet; then
+            git commit --amend --no-edit
+            git push --force-with-lease
+          fi

@@ -1,0 +1,375 @@
+{
+  "skyway": {
+    "scheduler-max": 33
+  },
+  "repositories": {
+    "stash": {
+      "username": "ryspare25",
+      "images": true,
+      "issueStartNumber": 1,
+      "issueEndNumber": 52
+    },
+    "stash10": {
+      "username": "ryspare25",
+      "images": true,
+      "issueStartNumber": 1,
+      "issueEndNumber": 30
+    },
+    "stash11": {
+      "username": "ryspare25",
+      "images": true,
+      "issueStartNumber": 1,
+      "issueEndNumber": 30
+    },
+    "stash12": {
+      "username": "ryspare25",
+      "images": true,
+      "issueStartNumber": 1,
+      "issueEndNumber": 12
+    },
+    "stash13": {
+      "username": "ryspare25",
+      "images": true,
+      "issueStartNumber": 1,
+      "issueEndNumber": 30
+    },
+    "stash14": {
+      "username": "ryspare25",
+      "images": true,
+      "issueStartNumber": 1,
+      "issueEndNumber": 59
+    },
+    "stash15": {
+      "username": "ryspare25",
+      "images": true,
+      "issueStartNumber": 1,
+      "issueEndNumber": 37
+    },
+    "stash16": {
+      "username": "ryspare25",
+      "images": true,
+      "issueStartNumber": 1,
+      "issueEndNumber": 11
+    },
+    "stash17": {
+      "username": "ryspare25",
+      "images": true,
+      "issueStartNumber": 1,
+      "issueEndNumber": 30
+    },
+    "stash18": {
+      "username": "ryspare25",
+      "images": true,
+      "issueStartNumber": 1,
+      "issueEndNumber": 30
+    },
+    "stash19": {
+      "username": "ryspare25",
+      "images": true,
+      "issueStartNumber": 1,
+      "issueEndNumber": 11
+    },
+    "stash2": {
+      "username": "ryspare25",
+      "images": true,
+      "issueStartNumber": 1,
+      "issueEndNumber": 2
+    },
+    "stash20": {
+      "username": "ryspare25",
+      "images": true,
+      "issueStartNumber": 1,
+      "issueEndNumber": 24
+    },
+    "stash21": {
+      "username": "ryspare25",
+      "images": true,
+      "issueStartNumber": 1,
+      "issueEndNumber": 30
+    },
+    "stash22": {
+      "username": "ryspare25",
+      "images": true,
+      "issueStartNumber": 1,
+      "issueEndNumber": 36
+    },
+    "stash23": {
+      "username": "ryspare25",
+      "images": true,
+      "issueStartNumber": 1,
+      "issueEndNumber": 30
+    },
+    "stash24": {
+      "username": "ryspare25",
+      "images": true,
+      "issueStartNumber": 1,
+      "issueEndNumber": 64
+    },
+    "stash25": {
+      "username": "ryspare25",
+      "images": true,
+      "issueStartNumber": 1,
+      "issueEndNumber": 31
+    },
+    "stash26": {
+      "username": "ryspare25",
+      "images": true,
+      "issueStartNumber": 1,
+      "issueEndNumber": 59
+    },
+    "stash27": {
+      "username": "ryspare25",
+      "images": true,
+      "issueStartNumber": 1,
+      "issueEndNumber": 20
+    },
+    "stash28": {
+      "username": "ryspare25",
+      "images": true,
+      "issueStartNumber": 1,
+      "issueEndNumber": 23
+    },
+    "stash29": {
+      "username": "ryspare25",
+      "images": true,
+      "issueStartNumber": 1,
+      "issueEndNumber": 46
+    },
+    "stash3": {
+      "username": "ryspare25",
+      "images": true,
+      "issueStartNumber": 1,
+      "issueEndNumber": 10
+    },
+    "stash30": {
+      "username": "ryspare25",
+      "images": true,
+      "issueStartNumber": 1,
+      "issueEndNumber": 25
+    },
+    "stash31": {
+      "username": "ryspare25",
+      "images": true,
+      "issueStartNumber": 1,
+      "issueEndNumber": 23
+    },
+    "stash32": {
+      "username": "ryspare25",
+      "images": true,
+      "issueStartNumber": 1,
+      "issueEndNumber": 23
+    },
+    "stash33": {
+      "username": "ryspare25",
+      "images": true,
+      "issueStartNumber": 1,
+      "issueEndNumber": 27
+    },
+    "stash34": {
+      "username": "ryspare25",
+      "images": true,
+      "issueStartNumber": 1,
+      "issueEndNumber": 29
+    },
+    "stash35": {
+      "username": "ryspare25",
+      "images": true,
+      "issueStartNumber": 1,
+      "issueEndNumber": 6
+    },
+    "stash36": {
+      "username": "ryspare25",
+      "images": true,
+      "issueStartNumber": 1,
+      "issueEndNumber": 25
+    },
+    "stash37": {
+      "username": "ryspare25",
+      "images": true,
+      "issueStartNumber": 1,
+      "issueEndNumber": 27
+    },
+    "stash38": {
+      "username": "ryspare25",
+      "images": true,
+      "issueStartNumber": 1,
+      "issueEndNumber": 35
+    },
+    "stash39": {
+      "username": "ryspare25",
+      "images": true,
+      "issueStartNumber": 1,
+      "issueEndNumber": 36
+    },
+    "stash4": {
+      "username": "ryspare25",
+      "images": true,
+      "issueStartNumber": 1,
+      "issueEndNumber": 25
+    },
+    "stash40": {
+      "username": "ryspare25",
+      "images": true,
+      "issueStartNumber": 1,
+      "issueEndNumber": 6
+    },
+    "stash41": {
+      "username": "ryspare25",
+      "images": true,
+      "issueStartNumber": 1,
+      "issueEndNumber": 35
+    },
+    "stash42": {
+      "username": "ryspare25",
+      "images": true,
+      "issueStartNumber": 1,
+      "issueEndNumber": 20
+    },
+    "stash43": {
+      "username": "ryspare25",
+      "images": true,
+      "issueStartNumber": 1,
+      "issueEndNumber": 25
+    },
+    "stash44": {
+      "username": "ryspare25",
+      "images": true,
+      "issueStartNumber": 1,
+      "issueEndNumber": 31
+    },
+    "stash45": {
+      "username": "ryspare25",
+      "images": true,
+      "issueStartNumber": 1,
+      "issueEndNumber": 26
+    },
+    "stash46": {
+      "username": "ryspare25",
+      "images": true,
+      "issueStartNumber": 1,
+      "issueEndNumber": 26
+    },
+    "stash47": {
+      "username": "ryspare25",
+      "images": true,
+      "issueStartNumber": 1,
+      "issueEndNumber": 26
+    },
+    "stash48": {
+      "username": "ryspare25",
+      "images": true,
+      "issueStartNumber": 1,
+      "issueEndNumber": 7
+    },
+    "stash49": {
+      "username": "ryspare25",
+      "images": true,
+      "issueStartNumber": 1,
+      "issueEndNumber": 26
+    },
+    "stash5": {
+      "username": "ryspare25",
+      "images": true,
+      "issueStartNumber": 1,
+      "issueEndNumber": 29
+    },
+    "stash50": {
+      "username": "ryspare25",
+      "images": true,
+      "issueStartNumber": 1,
+      "issueEndNumber": 3
+    },
+    "stash51": {
+      "username": "ryspare25",
+      "images": true,
+      "issueStartNumber": 1,
+      "issueEndNumber": 35
+    },
+    "stash52": {
+      "username": "ryspare25",
+      "images": true,
+      "issueStartNumber": 1,
+      "issueEndNumber": 34
+    },
+    "stash53": {
+      "username": "ryspare25",
+      "images": true,
+      "issueStartNumber": 1,
+      "issueEndNumber": 32
+    },
+    "stash54": {
+      "username": "ryspare25",
+      "images": true,
+      "issueStartNumber": 1,
+      "issueEndNumber": 30
+    },
+    "stash55": {
+      "username": "ryspare25",
+      "images": true,
+      "issueStartNumber": 1,
+      "issueEndNumber": 30
+    },
+    "stash56": {
+      "username": "ryspare25",
+      "images": true,
+      "issueStartNumber": 1,
+      "issueEndNumber": 27
+    },
+    "stash57": {
+      "username": "ryspare25",
+      "images": true,
+      "issueStartNumber": 1,
+      "issueEndNumber": 40
+    },
+    "stash58": {
+      "username": "ryspare25",
+      "images": true,
+      "issueStartNumber": 1,
+      "issueEndNumber": 13
+    },
+    "stash59": {
+      "username": "ryspare25",
+      "images": true,
+      "issueStartNumber": 1,
+      "issueEndNumber": 24
+    },
+    "stash6": {
+      "username": "ryspare25",
+      "images": true,
+      "issueStartNumber": 1,
+      "issueEndNumber": 25
+    },
+    "stash60": {
+      "username": "ryspare25",
+      "images": true,
+      "issueStartNumber": 1,
+      "issueEndNumber": 9
+    },
+    "stash7": {
+      "username": "ryspare25",
+      "images": true,
+      "issueStartNumber": 1,
+      "issueEndNumber": 28
+    },
+    "stash8": {
+      "username": "ryspare25",
+      "images": true,
+      "issueStartNumber": 1,
+      "issueEndNumber": 64
+    },
+    "stash9": {
+      "username": "ryspare25",
+      "images": true,
+      "issueStartNumber": 1,
+      "issueEndNumber": 25
+    }
+  },
+  "formulas": [
+    "random",
+    "leftLeaning",
+    "rightLeaning1",
+    "rightLeaning1",
+    "recent20Percent",
+    "recent5Percent"
+  ]
+}

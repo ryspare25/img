@@ -1,0 +1,28 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Random Redirect</title>
+
+<script>
+(() => {
+    // Randomly choose a number from 1 to 6 (inclusive)
+    const version = Math.floor(Math.random() * 6) + 1;
+
+    // Redirect
+    window.location.replace(
+        `http://ryspare25.github.io/img/allv${version}.html`
+    );
+})();
+</script>
+
+<noscript>
+<meta http-equiv="refresh" content="0;url=http://ryspare25.github.io/img/allv1.html">
+</noscript>
+
+</head>
+<body>
+Redirecting...
+</body>
+</html>
